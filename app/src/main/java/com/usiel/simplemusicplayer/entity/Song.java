@@ -10,19 +10,25 @@ public class Song {
     /**
      * 歌曲文件大小，字节数
      */
-    private int fileSize;
+    private long fileSize;
     /**
      * 创建时间，毫秒数
      */
     private long createTime;
+    /**
+     * 持续时间
+     */
+    private int duration;
 
-    public Song(String name, String singerName, String path, int fileSize, long createTime) {
+    public Song(String name, String singerName, String path, long fileSize, long createTime, int duration) {
         this.name = name;
         this.singerName = singerName;
         this.path = path;
         this.fileSize = fileSize;
         this.createTime = createTime;
+        this.duration = duration;
     }
+
 
     public String getName() {
         return name;
@@ -48,11 +54,11 @@ public class Song {
         this.path = path;
     }
 
-    public int getFileSize() {
+    public long getFileSize() {
         return fileSize;
     }
 
-    public void setFileSize(int fileSize) {
+    public void setFileSize(long fileSize) {
         this.fileSize = fileSize;
     }
 
@@ -64,6 +70,14 @@ public class Song {
         this.createTime = createTime;
     }
 
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
     @Override
     public String toString() {
         return "Song{" +
@@ -72,6 +86,7 @@ public class Song {
                 ", path='" + path + '\'' +
                 ", fileSize=" + fileSize +
                 ", createTime=" + createTime +
+                ", duration=" + duration +
                 '}';
     }
 }

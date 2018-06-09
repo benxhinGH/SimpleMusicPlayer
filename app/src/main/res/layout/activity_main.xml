@@ -9,7 +9,9 @@
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="?actionBarSize"></android.support.v7.widget.Toolbar>
+        android:layout_height="?actionBarSize"
+        app:titleTextColor="@color/white"
+        android:background="@color/colorPrimary"></android.support.v7.widget.Toolbar>
 
     <Button
         android:id="@+id/btn_local_music"
