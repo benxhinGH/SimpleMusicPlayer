@@ -1,6 +1,7 @@
 package com.usiel.simplemusicplayer.activity;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -15,6 +16,9 @@ import android.widget.Toast;
 
 import com.usiel.simplemusicplayer.R;
 import com.usiel.simplemusicplayer.adapter.LocalMusicRvAdapter;
+import com.usiel.simplemusicplayer.adapter.OnItemClickListener;
+import com.usiel.simplemusicplayer.engine.PlayControlCenter;
+import com.usiel.simplemusicplayer.entity.PlayList;
 import com.usiel.simplemusicplayer.entity.Song;
 import com.usiel.simplemusicplayer.tools.MusicScanner;
 
@@ -50,6 +54,7 @@ public class LocalMusicActivity extends AppCompatActivity {
         setContentView(R.layout.activity_local_music);
         ButterKnife.bind(this);
         toolbar.setTitle(title);
+        toolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -66,6 +71,21 @@ public class LocalMusicActivity extends AppCompatActivity {
     private void initView(){
         rvLocalMusic.setLayoutManager(new LinearLayoutManager(this));
         rvLocalMusic.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
+        adapter=new LocalMusicRvAdapter(LocalMusicActivity.this);
+        adapter.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(int position) {
+                PlayList playList=new PlayList("123",123l,adapter.getSongs());
+                PlayControlCenter.getInstance().setPlayList(playList);
+                Intent intent=new Intent(LocalMusicActivity.this,PlayActivity.class);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onItemLongClick(int position) {
+
+            }
+        });
     }
 
     private void initData(){
@@ -77,7 +97,7 @@ public class LocalMusicActivity extends AppCompatActivity {
 
             @Override
             public void onNext(List<Song> songs) {
-                adapter=new LocalMusicRvAdapter(LocalMusicActivity.this);
+
                 adapter.setSongs(songs);
                 runOnUiThread(new Runnable() {
                     @Override

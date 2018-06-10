@@ -7,8 +7,6 @@ import android.util.Log;
 import com.usiel.simplemusicplayer.entity.Song;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -37,8 +35,7 @@ public class MusicScanner {
             String name=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
             String singerName=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
             String duration=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-            String date=mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE);
-            songs.add(new Song(name,singerName,file.getPath(),file.length(),0l,Integer.valueOf(duration)));
+            songs.add(new Song(name,singerName,file.getPath(),file.length(),file.lastModified(),Integer.valueOf(duration)));
         }
         return songs;
     }

@@ -20,6 +20,12 @@
             </intent-filter>
         </activity>
         <activity android:name=".activity.LocalMusicActivity"/>
+        <activity android:name=".activity.PlayActivity"/>
+
+
+
+
+        <service android:name=".service.MusicPlayService" android:exported="true"/>
     </application>
 
 </manifest>

@@ -72,6 +72,10 @@ public class LocalMusicRvAdapter extends RecyclerView.Adapter<LocalMusicRvAdapte
         this.onItemClickListener=onItemClickListener;
     }
 
+    public List<Song> getSongs(){
+        return songs;
+    }
+
     class ViewHolder extends RecyclerView.ViewHolder{
         @BindView(R.id.tv_music_name)
         TextView tvMusicName;
