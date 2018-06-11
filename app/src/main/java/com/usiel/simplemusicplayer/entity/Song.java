@@ -1,9 +1,12 @@
 package com.usiel.simplemusicplayer.entity;
 
+
+import org.litepal.crud.LitePalSupport;
+
 /**
  * 歌曲实体类
  */
-public class Song {
+public class Song extends LitePalSupport {
     private String name;
     private String singerName;
     private String path;

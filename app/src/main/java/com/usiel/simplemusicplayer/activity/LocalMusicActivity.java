@@ -17,10 +17,12 @@ import android.widget.Toast;
 import com.usiel.simplemusicplayer.R;
 import com.usiel.simplemusicplayer.adapter.LocalMusicRvAdapter;
 import com.usiel.simplemusicplayer.adapter.OnItemClickListener;
+import com.usiel.simplemusicplayer.db.DBHelper;
 import com.usiel.simplemusicplayer.engine.PlayControlCenter;
 import com.usiel.simplemusicplayer.entity.PlayList;
 import com.usiel.simplemusicplayer.entity.Song;
 import com.usiel.simplemusicplayer.tools.MusicScanner;
+import com.usiel.simplemusicplayer.utils.PreferenceUtil;
 
 
 import java.util.List;
@@ -72,6 +74,7 @@ public class LocalMusicActivity extends AppCompatActivity {
         rvLocalMusic.setLayoutManager(new LinearLayoutManager(this));
         rvLocalMusic.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
         adapter=new LocalMusicRvAdapter(LocalMusicActivity.this);
+        rvLocalMusic.setAdapter(adapter);
         adapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(int position) {
@@ -89,50 +92,13 @@ public class LocalMusicActivity extends AppCompatActivity {
     }
 
     private void initData(){
-        Observer<List<Song>> observer=new Observer<List<Song>>() {
-            @Override
-            public void onSubscribe(Disposable d) {
-                showProgressDialog();
-            }
-
-            @Override
-            public void onNext(List<Song> songs) {
-
-                adapter.setSongs(songs);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        rvLocalMusic.setAdapter(adapter);
-                    }
-                });
-
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                Toast.makeText(LocalMusicActivity.this, "error", Toast.LENGTH_SHORT).show();
-                closeProgressDialog();
-            }
-
-            @Override
-            public void onComplete() {
-                closeProgressDialog();
-            }
-        };
-
-        Observable<List<Song>> observable=Observable.create(new ObservableOnSubscribe<List<Song>>() {
-            @Override
-            public void subscribe(ObservableEmitter<List<Song>> emitter) throws Exception {
-                MusicScanner scanner=new MusicScanner();
-                List<Song> songs=scanner.scanSongs();
-                emitter.onNext(songs);
-                emitter.onComplete();
-            }
-        });
-        observable
-                .observeOn(Schedulers.io())
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(observer);
+        long bufferedTime=PreferenceUtil.getInstance().getSongsBufferedTime();
+        if(bufferedTime==0l)scanSongs();
+        else{
+            List<Song> songs=DBHelper.getInstance().getSongsBuffer();
+            adapter.setSongs(songs);
+            adapter.notifyDataSetChanged();
+        }
     }
 
     private void showProgressDialog(){
@@ -161,11 +127,57 @@ public class LocalMusicActivity extends AppCompatActivity {
                 Toast.makeText(this, "search", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.action_scan:
-                Toast.makeText(this, "scan", Toast.LENGTH_SHORT).show();
+                scanSongs();
                 break;
                 default:
                     break;
         }
         return true;
+    }
+
+    private void scanSongs(){
+        Observer<List<Song>> observer=new Observer<List<Song>>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+                showProgressDialog();
+            }
+
+            @Override
+            public void onNext(List<Song> songs) {
+                adapter.setSongs(songs);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapter.notifyDataSetChanged();
+                    }
+                });
+                DBHelper.getInstance().updateSongsBuffer(songs);
+                PreferenceUtil.getInstance().updateSongsBufferedTime(System.currentTimeMillis());
+            }
+            @Override
+            public void onError(Throwable e) {
+                Toast.makeText(LocalMusicActivity.this, "error", Toast.LENGTH_SHORT).show();
+                closeProgressDialog();
+            }
+
+            @Override
+            public void onComplete() {
+                closeProgressDialog();
+            }
+        };
+
+        Observable<List<Song>> observable=Observable.create(new ObservableOnSubscribe<List<Song>>() {
+            @Override
+            public void subscribe(ObservableEmitter<List<Song>> emitter) throws Exception {
+                MusicScanner scanner=new MusicScanner();
+                List<Song> songs=scanner.scanSongs();
+                emitter.onNext(songs);
+                emitter.onComplete();
+            }
+        });
+        observable
+                .observeOn(Schedulers.io())
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribe(observer);
     }
 }

@@ -1,14 +1,21 @@
 package com.usiel.simplemusicplayer.service;
 
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.media.MediaPlayer;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.widget.SeekBar;
 
+import com.usiel.simplemusicplayer.activity.PlayActivity;
+import com.usiel.simplemusicplayer.engine.PlayControlCenter;
 import com.usiel.simplemusicplayer.entity.PlayList;
 import com.usiel.simplemusicplayer.entity.Song;
+import com.usiel.simplemusicplayer.interfaces.PlayUIControl;
 
 import java.io.IOException;
 import java.util.List;
@@ -38,6 +45,19 @@ public class MusicPlayService extends Service {
 
     private Random random=new Random();
 
+    private PlayUIControl playUIControl;
+
+    private Handler handler=new Handler();
+
+    private Runnable seekBarCtrl=new Runnable() {
+        @Override
+        public void run() {
+            playUIControl.seekBarSeekTo(getCurrentProgress());
+            playUIControl.setTimeText(mediaPlayer.getCurrentPosition()+"/"+mediaPlayer.getDuration());
+            handler.postDelayed(seekBarCtrl,500);
+        }
+    };
+
 
 
     public enum PlayMode{
@@ -47,6 +67,7 @@ public class MusicPlayService extends Service {
 
 
     private MyBinder mBinder=new MyBinder();
+
 
 
     @Nullable
@@ -61,21 +82,76 @@ public class MusicPlayService extends Service {
             mediaPlayer.setDataSource(song.getPath());
             mediaPlayer.prepare();
             currentSongIndex=songList.indexOf(song);
+            playUIControl.setMusicName(song.getName());
+            playUIControl.setSingerName(song.getSingerName());
         }catch (IOException e){
             e.printStackTrace();
         }
     }
 
-    public void init(){
+    public void init(PlayUIControl playUIControl){
+        if(this.playUIControl!=null){
+            rebindPlayUI(playUIControl);
+            return;
+        }
+        this.playUIControl=playUIControl;
         loadMusicAndPrepare(songList.get(0));
+        playUIControl.setSeekBarMax(getCurrentDuration());
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                autoNextSong();
+            }
+        });
+        playUIControl.setSeekBarListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                seekTo(seekBar.getProgress());
+            }
+        });
+    }
+
+    public void rebindPlayUI(PlayUIControl playUIControl){
+        this.playUIControl=playUIControl;
+        playUIControl.setSeekBarMax(getCurrentDuration());
+        playUIControl.setSeekBarListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                seekTo(seekBar.getProgress());
+            }
+        });
+        playUIControl.setMusicName(songList.get(currentSongIndex).getName());
+        playUIControl.setSingerName(songList.get(currentSongIndex).getSingerName());
     }
 
 
     public void playOrPause(){
         if(mediaPlayer.isPlaying()){
             mediaPlayer.pause();
+            handler.removeCallbacks(seekBarCtrl);
         }else{
             mediaPlayer.start();
+            handler.post(seekBarCtrl);
         }
     }
 
