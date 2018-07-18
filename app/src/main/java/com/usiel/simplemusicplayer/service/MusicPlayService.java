@@ -9,6 +9,7 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.widget.SeekBar;
 
 import com.usiel.simplemusicplayer.activity.PlayActivity;
@@ -41,7 +42,7 @@ public class MusicPlayService extends Service {
     private int currentSongIndex;
 
 
-    private MediaPlayer mediaPlayer;
+    private static final MediaPlayer mediaPlayer=new MediaPlayer();
 
     private Random random=new Random();
 
@@ -73,7 +74,7 @@ public class MusicPlayService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        mediaPlayer=new MediaPlayer();
+        Log.d(TAG,"onBind........,mediaPlayer is :"+mediaPlayer.toString()+"mBinder is :"+mBinder.toString());
         return mBinder;
     }
 
@@ -90,12 +91,9 @@ public class MusicPlayService extends Service {
     }
 
     public void init(PlayUIControl playUIControl){
-        if(this.playUIControl!=null){
-            rebindPlayUI(playUIControl);
-            return;
-        }
         this.playUIControl=playUIControl;
-        loadMusicAndPrepare(songList.get(0));
+        if(!mediaPlayer.isPlaying()) loadMusicAndPrepare(songList.get(0));
+        else handler.post(seekBarCtrl);
         playUIControl.setSeekBarMax(getCurrentDuration());
         mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
@@ -119,30 +117,11 @@ public class MusicPlayService extends Service {
                 seekTo(seekBar.getProgress());
             }
         });
-    }
-
-    public void rebindPlayUI(PlayUIControl playUIControl){
-        this.playUIControl=playUIControl;
-        playUIControl.setSeekBarMax(getCurrentDuration());
-        playUIControl.setSeekBarListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                seekTo(seekBar.getProgress());
-            }
-        });
         playUIControl.setMusicName(songList.get(currentSongIndex).getName());
         playUIControl.setSingerName(songList.get(currentSongIndex).getSingerName());
     }
+
+
 
 
     public void playOrPause(){

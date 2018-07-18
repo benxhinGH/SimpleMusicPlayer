@@ -156,6 +156,7 @@ public class LocalMusicActivity extends AppCompatActivity {
             }
             @Override
             public void onError(Throwable e) {
+                e.printStackTrace();
                 Toast.makeText(LocalMusicActivity.this, "error", Toast.LENGTH_SHORT).show();
                 closeProgressDialog();
             }

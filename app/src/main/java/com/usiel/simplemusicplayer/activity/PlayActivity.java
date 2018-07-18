@@ -25,6 +25,8 @@ import butterknife.OnClick;
 
 public class PlayActivity extends AppCompatActivity implements PlayUIControl {
 
+    private final String TAG=PlayActivity.class.getSimpleName();
+
     private String title="play";
 
     @BindView(R.id.toolbar)
@@ -49,6 +51,7 @@ public class PlayActivity extends AppCompatActivity implements PlayUIControl {
     private ServiceConnection serviceConnection=new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.d(TAG,"binder is :"+service.toString());
             musicPlayService=((MusicPlayService.MyBinder)service).getService();
             musicPlayService.switchPlayList(PlayControlCenter.getInstance().getPlayList());
             musicPlayService.init(PlayActivity.this);
